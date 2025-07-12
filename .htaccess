@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /wemart/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/ [NC]
+    RewriteRule ^(.*)$ index.php [L]
+</IfModule>
+
+<FilesMatch "^(index\.php|api/check_email\.php|login\.php|register\.php|logout\.php)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+<FilesMatch "^(index\.php|api/check_email\.php|)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
