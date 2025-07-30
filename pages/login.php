@@ -1,9 +1,9 @@
-
 <?php
 require_once '../includes/config.php';
 require_once '../classes/Database.php';
 require_once '../classes/User.php';
 
+// Session is started in config.php, no need to call here
 $db = new Database();
 $user = new User($db);
 $errors = [];
@@ -13,32 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
 
     if (empty($email) || empty($password)) {
-        $errors[] = "All fields are required.";
+        $errors[] = "Please fill in all fields.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     } else {
-        // Check if email exists and is verified
-        $stmt = $db->getConnection()->prepare("SELECT user_id FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user_id = $stmt->fetchColumn();
-
-        if ($user_id) {
-            $stmt = $db->getConnection()->prepare("SELECT COUNT(*) FROM email_verifications WHERE user_id = ? AND expires_at > NOW()");
-            $stmt->execute([$user_id]);
-            $is_verified = $stmt->fetchColumn() > 0;
-
-            if (!$is_verified) {
-                $errors[] = "Please verify your email before logging in. <a href='verify_email.php'>Verify now</a>.";
-            } else {
-                if ($user->login($email, $password)) {
-                    header("Location: index.php");
-                    exit;
-                } else {
-                    $errors[] = "Invalid email or password.";
-                }
-            }
+        if ($user->login($email, $password)) {
+            header("Location: index.php");
+            exit;
         } else {
-            $errors[] = "Email not found.";
+            $errors[] = "Invalid email or password. Create an account if you don't have one.";
         }
     }
 }
@@ -56,23 +39,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main>
         <h1>Login</h1>
         <?php if ($errors): ?>
-            <ul class="errors">
+            <ul class="errors" role="alert">
                 <?php foreach ($errors as $error): ?>
-                    <li><?php echo $error; ?></li>
+                    <li><?php echo htmlspecialchars($error, ENT_QUOTES); ?></li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        <form method="POST">
+        <form method="POST" aria-labelledby="login-form">
             <label for="email">Email:</label>
-            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required onblur="checkEmailAvailability(this.value)">
+            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
             <label for="password">Password:</label>
-            <input type="password" name="password" required>
+            <input type="password" name="password" id="password" required aria-required="true">
             <button type="submit">Login</button>
             <p>Don't have an account? <a href="register.php">Register here</a>.</p>
         </form>
-        <div id="email-message"></div>
     </main>
     <?php include '../includes/footer.php'; ?>
-    <script src="../assets/js/scripts.js"></script>
+    <script src="../assets/js/script.js"></script>
 </body>
 </html>

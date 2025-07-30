@@ -38,3 +38,13 @@ function checkEmailAvailability(email) {
     })
     .catch(error => console.error('Error checking email:', error));
 }
+
+import Swiper from 'https://unpkg.com/swiper/swiper-bundle.min.js';
+new Swiper('.carousel', {
+    slidesPerView: 'auto',
+    spaceBetween: 24,
+    navigation: {
+        nextEl: '.carousel-next',
+        prevEl: '.carousel-prev',
+    },
+});

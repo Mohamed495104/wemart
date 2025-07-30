@@ -19,7 +19,7 @@ if (!$prod) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($prod['name']); ?> - Wemart</title>
-    <link rel="stylesheetmint" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
