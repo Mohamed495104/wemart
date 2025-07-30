@@ -22,7 +22,7 @@ $customer_favorites = $product->getCustomerFavorites(4);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wemart - Your Everyday Shopping Destination</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="stylesheet" href="../assets/css/styles.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
@@ -37,7 +37,6 @@ $customer_favorites = $product->getCustomerFavorites(4);
         <section class="hero">
             <h1>Welcome to Wemart</h1>
             <p>Shop everyday low prices!</p>
-            <div id="weather-suggestions"></div>
         </section>
         <section class="promo-banner">
             <h2>Exclusive Offer!</h2>
@@ -58,28 +57,24 @@ $customer_favorites = $product->getCustomerFavorites(4);
         </form>
 
         <section class="deals-carousel">
-            <h2>Daily Deals <span class="countdown" id="deal-countdown"></span></h2>
-            <div class="carousel-container">
-                <button class="carousel-prev">❮</button>
-                <div class="carousel">
-                    <?php foreach ($deals as $deal): ?>
-                        <div class="deal-item">
-                            <img src="<?php echo htmlspecialchars($deal['image']); ?>" alt="<?php echo htmlspecialchars($deal['name']); ?> deal">
-                            <h3><?php echo htmlspecialchars($deal['name']); ?></h3>
-                            <p class="original-price">$<?php echo number_format($deal['original_price'], 2); ?></p>
-                            <p class="deal-price">$<?php echo number_format($deal['deal_price'], 2); ?></p>
-                            <a href="product_details.php?id=<?php echo $deal['product_id']; ?>" class="view-deal">View Deal</a>
-                        </div>
-                    <?php endforeach; ?>
+    <h2>Daily Deals <span class="countdown" id="deal-countdown"></span></h2>
+    <div class="carousel-container">
+        <button class="carousel-prev">❮</button>
+        <div class="carousel">
+            <?php foreach ($deals as $deal): ?>
+                <div class="deal-item">
+                    <img src="<?php echo htmlspecialchars($deal['image']); ?>" alt="<?php echo htmlspecialchars($deal['name']); ?> deal">
+                    <h3><?php echo htmlspecialchars($deal['name']); ?></h3>
+                    <p class="original-price">$<?php echo number_format($deal['original_price'], 2); ?></p>
+                    <p class="deal-price">$<?php echo number_format($deal['deal_price'], 2); ?></p>
+                    <a href="product_details.php?id=<?php echo $deal['product_id']; ?>" class="view-deal">View Deal</a>
                 </div>
-                <button class="carousel-next">❯</button>
-            </div>
-        </section>
-        <section class="banner-ad">
-            <h2>Seasonal Sale!</h2>
-            <p>Up to 50% off on select items – Don’t miss out!</p>
-            <a href="sale.php" class="cta-button">Discover Deals</a>
-        </section>
+            <?php endforeach; ?>
+        </div>
+        <button class="carousel-next">❯</button>
+    </div>
+</section>
+
         <section class="customer-favorites">
             <h2>Customer Favorites</h2>
             <div class="products-grid">
@@ -205,33 +200,7 @@ $customer_favorites = $product->getCustomerFavorites(4);
                 </div>
             </div>
         </section>
-        <section class="products">
-            <h2>All Products</h2>
-            <div class="products-grid">
-                <?php foreach ($products as $p): ?>
-                    <div class="product-card">
-                        <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?> product image">
-                        <h3><?php echo htmlspecialchars($p['name']); ?></h3>
-                        <p><?php echo htmlspecialchars($p['category_name']); ?></p>
-                        <p class="price">$<?php echo number_format($p['price'], 2); ?></p>
-                        <a href="product_details.php?id=<?php echo $p['product_id']; ?>" class="view-details">View Details</a>
-                        <form method="POST" action="cart.php">
-                            <input type="hidden" name="product_id" value="<?php echo $p['product_id']; ?>">
-                            <input type="number" name="quantity" value="1" min="1" max="<?php echo $p['stock']; ?>">
-                            <button type="submit" name="add_to_cart">Add to Cart</button>
-                        </form>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
-        <section class="newsletter">
-            <h2>Stay Updated</h2>
-            <p>Subscribe to our newsletter for exclusive deals and updates!</p>
-            <form method="POST" action="subscribe.php" class="newsletter-form">
-                <input type="email" name="email" placeholder="Enter your email" required>
-                <button type="submit">Subscribe</button>
-            </form>
-        </section>
+    
     </main>
     <?php include '../includes/footer.php'; ?>
     <script src="../assets/js/script.js"></script>
