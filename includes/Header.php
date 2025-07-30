@@ -7,7 +7,7 @@ require_once 'config.php';
         <a href="<?php echo BASE_URL; ?>pages/index.php">Home</a>
     </nav>
     <nav class="nav-right">
-        <a href="<?php echo BASE_URL; ?>cart.php">Cart (<?php echo isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0; ?>)</a>
+        <a href="<?php echo BASE_URL; ?>pages/cart.php">Cart (<?php echo isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0; ?>)</a>
         <?php if (isset($_SESSION['user_id'])): ?>
             <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                 <a href="<?php echo BASE_URL; ?>pages/admin/dashboard.php">Admin Panel</a>

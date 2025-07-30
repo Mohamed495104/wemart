@@ -16,28 +16,17 @@ function fetchWeatherSuggestions() {
 
 document.addEventListener('DOMContentLoaded', fetchWeatherSuggestions);
 
-
-function checkEmailAvailability(email) {
-    fetch('http://localhost/wemart/api/check_email.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email })
-    })
-    .then(response => response.json())
-    .then(data => {
-        const messageDiv = document.getElementById('email-message');
-        if (data.status === 'success') {
-            messageDiv.textContent = data.message;
-            messageDiv.style.color = data.exists ? 'red' : 'green';
-        } else {
-            messageDiv.textContent = data.message;
-            messageDiv.style.color = 'red';
-        }
-    })
-    .catch(error => console.error('Error checking email:', error));
-}
+document.querySelectorAll('.carousel-container').forEach(container => {
+    const carousel = container.querySelector('.carousel');
+    const prevBtn = container.querySelector('.carousel-prev');
+    const nextBtn = container.querySelector('.carousel-next');
+    prevBtn.addEventListener('click', () => {
+        carousel.scrollBy({ left: -300, behavior: 'smooth' });
+    });
+    nextBtn.addEventListener('click', () => {
+        carousel.scrollBy({ left: 300, behavior: 'smooth' });
+    });
+});
 
 import Swiper from 'https://unpkg.com/swiper/swiper-bundle.min.js';
 new Swiper('.carousel', {
