@@ -1,49 +1,53 @@
-
 <?php
 class User {
     private $db;
 
     public function __construct(Database $db) {
-        $this->db = $db->getConnection();
-    }
-
-    public function register($name, $email, $password, $address, $phone) {
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->db->prepare("INSERT INTO users (name, email, password, address, phone) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$name, $email, $hashed_password, $address, $phone]);
+        $this->db = $db;
     }
 
     public function login($email, $password) {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt = $this->db->getConnection()->prepare("SELECT user_id, name, password, role FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['name'] = $user['name'];
             $_SESSION['role'] = $user['role'];
-            return $user;
+            return true;
         }
         return false;
     }
 
-    public function readAll() {
-        $stmt = $this->db->query("SELECT * FROM users");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    public function register($name, $email, $password, $phone, $address_line, $city, $state, $postal_code, $country) {
+        try {
+            $this->db->getConnection()->beginTransaction();
 
-    public function readById($id) {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE user_id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
+            // Check for duplicate email
+            $stmt = $this->db->getConnection()->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetchColumn() > 0) {
+                return ["success" => false, "error" => "Email is already registered. <a href='login.php'>Login here</a>."];
+            }
 
-    public function update($id, $name, $email, $address, $phone, $role) {
-        $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, address = ?, phone = ?, role = ? WHERE user_id = ?");
-        return $stmt->execute([$name, $email, $address, $phone, $role, $id]);
-    }
+            // Insert into users
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $this->db->getConnection()->prepare("INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, 'user')");
+            $stmt->execute([$name, $email, $hashed_password, $phone]);
+            $user_id = $this->db->getConnection()->lastInsertId();
 
-    public function delete($id) {
-        $stmt = $this->db->prepare("DELETE FROM users WHERE user_id = ?");
-        return $stmt->execute([$id]);
+            // Insert into addresses
+            $stmt = $this->db->getConnection()->prepare("INSERT INTO addresses (user_id, address_line, city, state, postal_code, country, address_type) VALUES (?, ?, ?, ?, ?, ?, 'billing')");
+            $stmt->execute([$user_id, $address_line, $city, $state, $postal_code, $country]);
+
+            $this->db->getConnection()->commit();
+            return ["success" => true];
+        } catch (PDOException $e) {
+            $this->db->getConnection()->rollBack();
+            error_log("Registration error: " . $e->getMessage());
+            return ["success" => false, "error" => "Registration failed: " . htmlspecialchars($e->getMessage(), ENT_QUOTES)];
+        }
     }
 }
 ?>

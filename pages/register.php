@@ -1,47 +1,38 @@
-
 <?php
 require_once '../includes/config.php';
 require_once '../classes/Database.php';
 require_once '../classes/User.php';
 
+// Session is started in config.php
 $db = new Database();
 $user = new User($db);
 $errors = [];
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $password = $_POST['password'];
-    $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
-    $phone = filter_var($_POST['phone'], FILTER_SANITIZE_STRING);
+    $name = filter_var($_POST['name'] ?? '', FILTER_SANITIZE_STRING);
+    $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
+    $password = $_POST['password'] ?? '';
+    $phone = filter_var($_POST['phone'] ?? '', FILTER_SANITIZE_STRING);
+    $address_line = filter_var($_POST['address_line'] ?? '', FILTER_SANITIZE_STRING);
+    $city = filter_var($_POST['city'] ?? '', FILTER_SANITIZE_STRING);
+    $state = filter_var($_POST['state'] ?? '', FILTER_SANITIZE_STRING);
+    $postal_code = filter_var($_POST['postal_code'] ?? '', FILTER_SANITIZE_STRING);
+    $country = filter_var($_POST['country'] ?? '', FILTER_SANITIZE_STRING);
 
-    if (empty($name) || empty($email) || empty($password) || empty($address) || empty($phone)) {
+    // Validation
+    if (empty($name) || empty($email) || empty($password) || empty($phone) || empty($address_line) || empty($city) || empty($state) || empty($postal_code) || empty($country)) {
         $errors[] = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     } elseif (strlen($password) < 6) {
-        $errors[] = "Password must be at least 6 characters.";
+        $errors[] = "Password must be at least 6 characters long.";
     } else {
-        $stmt = $db->getConnection()->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetchColumn() > 0) {
-            $errors[] = "Email already registered.";
+        $result = $user->register($name, $email, $password, $phone, $address_line, $city, $state, $postal_code, $country);
+        if ($result['success']) {
+            $success = "Registration successful! Please Login to continue.";
         } else {
-            if ($user->register($name, $email, $password, $address, $phone)) {
-                $user_id = $db->getConnection()->lastInsertId();
-                $token = bin2hex(random_bytes(16)); // Generate random token
-                $expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
-                $stmt = $db->getConnection()->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)");
-                if ($stmt->execute([$user_id, $token, $expires_at])) {
-                    // In production, send $token via email. For testing, display it.
-                    $success = "Registration successful! Please verify your email. Verification token: $token (Check email in production).";
-                } else {
-                    $errors[] = "Failed to generate verification token.";
-                }
-            } else {
-                $errors[] = "Registration failed.";
-            }
+            $errors[] = $result['error'];
         }
     }
 }
@@ -57,31 +48,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <?php include '../includes/header.php'; ?>
     <main>
-        <h1>Register</h1>
+        <h1 id="register-form">Register</h1>
         <?php if ($errors): ?>
-            <ul class="errors">
+            <ul class="errors" role="alert">
                 <?php foreach ($errors as $error): ?>
-                    <li><?php echo htmlspecialchars($error); ?></li>
+                    <li><?php echo htmlspecialchars($error, ENT_QUOTES); ?></li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
         <?php if ($success): ?>
-            <p class="success"><?php echo htmlspecialchars($success); ?></p>
+            <p class="success" role="alert"><?php echo htmlspecialchars($success, ENT_QUOTES); ?></p>
         <?php endif; ?>
-        <form method="POST">
+        <form method="POST" aria-labelledby="register-form">
             <label for="name">Name:</label>
-            <input type="text" name="name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required>
+            <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($_POST['name'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
             <label for="email">Email:</label>
-            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required onblur="checkEmailAvailability(this.value)">
+            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true" onblur="checkEmailAvailability(this.value)">
             <label for="password">Password:</label>
-            <input type="password" name="password" required>
-            <label for="address">Address:</label>
-            <input type="text" name="address" value="<?php echo htmlspecialchars($_POST['address'] ?? ''); ?>" required>
+            <input type="password" name="password" id="password" required aria-required="true">
             <label for="phone">Phone:</label>
-            <input type="text" name="phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
+            <input type="text" name="phone" id="phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <label for="address_line">Address Line:</label>
+            <input type="text" name="address_line" id="address_line" value="<?php echo htmlspecialchars($_POST['address_line'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <label for="city">City:</label>
+            <input type="text" name="city" id="city" value="<?php echo htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <label for="state">State/Province:</label>
+            <input type="text" name="state" id="state" value="<?php echo htmlspecialchars($_POST['state'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <label for="postal_code">Postal Code:</label>
+            <input type="text" name="postal_code" id="postal_code" value="<?php echo htmlspecialchars($_POST['postal_code'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <label for="country">Country:</label>
+            <input type="text" name="country" id="country" value="<?php echo htmlspecialchars($_POST['country'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
             <button type="submit">Register</button>
+            <p>Already have an account? <a href="login.php">Login here</a>.</p>
         </form>
-        <p>Already have an account? <a href="login.php">Login here</a>.</p>
         <div id="email-message"></div>
     </main>
     <?php include '../includes/footer.php'; ?>
