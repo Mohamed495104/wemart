@@ -1,0 +1,383 @@
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  background-color: #003e7a; /* Dark blue from front-end styles */
+  color: #ffffff;
+  width: 250px;
+  min-height: 100vh;
+  padding: 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #e6f0ff; /* Light blue from front-end styles */
+}
+
+.sidebar a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #e6f0ff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar a:hover {
+  background-color: #0055a6; /* Blue from front-end styles */
+  color: #ffffff;
+}
+
+header {
+  background-color: #0055a6; /* Blue from front-end styles */
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-left: 250px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+main {
+  margin-left: 250px;
+  padding: 2rem;
+  max-width: 1200px;
+  flex: 1;
+}
+
+main h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+main h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+form {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #333;
+  transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #0055a6; /* Blue from front-end styles */
+  box-shadow: 0 0 0 2px rgba(0, 85, 166, 0.1);
+}
+
+textarea {
+  min-height: 100px;
+}
+
+button {
+  background-color: #0055a6; /* Blue from front-end styles */
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+  background-color: #003e7a; /* Darker blue from front-end styles */
+  transform: translateY(-1px);
+}
+
+button.delete {
+  background-color: #dc2626; /* Red from front-end styles */
+  padding: 0.5rem 1.25rem; /* Larger padding for better click area */
+  border-radius: 6px; /* Slightly rounder corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  font-weight: 600; /* Bolder text */
+}
+
+button.delete:hover {
+  background-color: #b91c1c; /* Darker red from front-end styles */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+  transform: translateY(-1px);
+}
+
+table {
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background-color: #f3f4f6; /* Light gray from front-end styles */
+  font-weight: 600;
+  color: #333;
+}
+
+td a {
+  color: #0055a6; /* Blue from front-end styles */
+  text-decoration: none;
+  margin-right: 1rem;
+}
+
+td a:hover {
+  color: #003e7a; /* Darker blue from front-end styles */
+  text-decoration: underline;
+}
+
+.errors {
+  background-color: #fff5f5; /* Light red from front-end styles */
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.errors li {
+  color: #dc2626; /* Red from front-end styles */
+  font-size: 0.9rem;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+footer {
+  background-color: #003e7a; /* Dark blue from front-end styles */
+  color: #ffffff;
+  padding: 1rem;
+  text-align: center;
+  margin-left: 250px;
+  font-size: 0.85rem;
+}
+
+/* Simple Alert Modal Styles */
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    position: static;
+    min-height: auto;
+    z-index: 100;
+  }
+
+  header, main, footer {
+    margin-left: 0;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+  }
+
+  main h1 {
+    font-size: 1.5rem;
+  }
+
+  form {
+    padding: 1rem;
+  }
+
+  table, th, td {
+    font-size: 0.8rem;
+  }
+
+ 
+  
+  .modal-content {
+    padding: 1rem;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-buttons button {
+    width: 100%;
+    padding: 0.5rem;
+  }
+}
+ .debug {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            list-style: none;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .errors {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+          .role-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-admin { background-color: #dc3545; color: white; }
+        .role-customer { background-color: #28a745; color: white; }
+        .role-user { background-color: #007bff; color: white; }
+        
+        .errors {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+        
+        .button-small {
+            background-color: #007bff;
+            color: white;
+            padding: 4px 8px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .button-small:hover {
+            background-color: #0056b3;
+        }
+        
+        .delete {
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .delete:hover {
+            background-color: #c82333;
+        }
+
+@media (max-width: 480px) {
+  main h1 {
+    font-size: 1.25rem;
+  }
+
+  main h2 {
+    font-size: 1.1rem;
+  }
+
+  button, input, select, textarea {
+    font-size: 0.8rem;
+  }
+
+  .errors li {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    max-width: 320px;
+  }
+
+  .modal-content p {
+    font-size: 0.9rem;
+  }
+
+  .modal-buttons button {
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+}

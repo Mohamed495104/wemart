@@ -19,6 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $state = filter_var($_POST['state'] ?? '', FILTER_SANITIZE_STRING);
     $postal_code = filter_var($_POST['postal_code'] ?? '', FILTER_SANITIZE_STRING);
     $country = filter_var($_POST['country'] ?? '', FILTER_SANITIZE_STRING);
+    $user_type = filter_var($_POST['user_type'] ?? 'user', FILTER_SANITIZE_STRING);
+
 
     // Validation
     if (empty($name) || empty($email) || empty($password) || empty($phone) || empty($address_line) || empty($city) || empty($state) || empty($postal_code) || empty($country)) {
@@ -27,8 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Invalid email format.";
     } elseif (strlen($password) < 6) {
         $errors[] = "Password must be at least 6 characters long.";
+    } elseif (!in_array($user_type, ['admin', 'user'])) {
+        $errors[] = "Invalid user type selected.";
     } else {
-        $result = $user->register($name, $email, $password, $phone, $address_line, $city, $state, $postal_code, $country);
+        $result = $user->register($name, $email, $password, $phone, $address_line, $city, $state, $postal_code, $country, $user_type);
         if ($result['success']) {
             $success = "Registration successful! Please Login to continue.";
         } else {
@@ -39,12 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Wemart</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
+
 <body>
     <?php include '../includes/header.php'; ?>
     <main>
@@ -61,23 +67,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <form method="POST" aria-labelledby="register-form">
             <label for="name">Name:</label>
-            <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($_POST['name'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="name" id="name"
+                value="<?php echo htmlspecialchars($_POST['name'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
             <label for="email">Email:</label>
-            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true" onblur="checkEmailAvailability(this.value)">
+            <input type="email" name="email" id="email"
+                value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true"
+                onblur="checkEmailAvailability(this.value)">
             <label for="password">Password:</label>
             <input type="password" name="password" id="password" required aria-required="true">
             <label for="phone">Phone:</label>
-            <input type="text" name="phone" id="phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="phone" id="phone"
+                value="<?php echo htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
             <label for="address_line">Address Line:</label>
-            <input type="text" name="address_line" id="address_line" value="<?php echo htmlspecialchars($_POST['address_line'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="address_line" id="address_line"
+                value="<?php echo htmlspecialchars($_POST['address_line'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
             <label for="city">City:</label>
-            <input type="text" name="city" id="city" value="<?php echo htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="city" id="city"
+                value="<?php echo htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
             <label for="state">State/Province:</label>
-            <input type="text" name="state" id="state" value="<?php echo htmlspecialchars($_POST['state'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="state" id="state"
+                value="<?php echo htmlspecialchars($_POST['state'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
             <label for="postal_code">Postal Code:</label>
-            <input type="text" name="postal_code" id="postal_code" value="<?php echo htmlspecialchars($_POST['postal_code'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="postal_code" id="postal_code"
+                value="<?php echo htmlspecialchars($_POST['postal_code'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
             <label for="country">Country:</label>
-            <input type="text" name="country" id="country" value="<?php echo htmlspecialchars($_POST['country'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="text" name="country" id="country"
+                value="<?php echo htmlspecialchars($_POST['country'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
+            <label for="user_type">User Type:</label>
+            <select name="user_type" id="user_type" required aria-required="true">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
             <button type="submit">Register</button>
             <p>Already have an account? <a href="login.php">Login here</a>.</p>
         </form>
@@ -86,4 +111,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include '../includes/footer.php'; ?>
     <script src="../assets/js/scripts.js"></script>
 </body>
+
 </html>

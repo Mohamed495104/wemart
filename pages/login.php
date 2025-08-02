@@ -18,7 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Invalid email format.";
     } else {
         if ($user->login($email, $password)) {
-            header("Location: index.php");
+            print_r("session data is   " . $_SESSION['role']); // Debugging line to check session data
+            if ($_SESSION['role'] === 'admin') {
+                header("Location: admin/dashboard.php"); 
+            } else {
+                header("Location: index.php");
+            }
             exit;
         } else {
             $errors[] = "Invalid email or password. Create an account if you don't have one.";
@@ -28,12 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Wemart</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
+
 <body>
     <?php include '../includes/header.php'; ?>
     <main>
@@ -47,7 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <form method="POST" aria-labelledby="login-form">
             <label for="email">Email:</label>
-            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <input type="email" name="email" id="email"
+                value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required
+                aria-required="true">
             <label for="password">Password:</label>
             <input type="password" name="password" id="password" required aria-required="true">
             <button type="submit">Login</button>
@@ -57,4 +66,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include '../includes/footer.php'; ?>
     <script src="../assets/js/script.js"></script>
 </body>
+
 </html>

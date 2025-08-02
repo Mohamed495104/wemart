@@ -2,6 +2,7 @@
 require_once '../includes/config.php';
 require_once '../classes/Database.php';
 require_once '../classes/Product.php';
+require_once '../classes/helper.php';
 
 $db = new Database();
 $product = new Product($db);
@@ -49,8 +50,7 @@ $discount_percentage = 0.20; // 20% off
             <div class="products-grid">
                 <?php foreach ($products as $p): ?>
                     <div class="product-card">
-                        <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?> product image">
-                        <h3><?php echo htmlspecialchars($p['name']); ?></h3>
+                        <img src="<?php echo htmlspecialchars(getImageSrc($p['image'], true)); ?>" alt="<?php echo htmlspecialchars($p['name']); ?> product image"><h3><?php echo htmlspecialchars($p['name']); ?></h3>
                         <p><?php echo htmlspecialchars($p['category_name']); ?></p>
                         <?php
                         // Determine base price (use deal_price if set, otherwise price)
