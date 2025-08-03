@@ -47,7 +47,7 @@ $users = $user->readAll();
         <a href="dashboard.php">Dashboard</a>
         <a href="manage_product.php">Manage Products</a>
         <a href="manage_users.php">Manage Users</a>
-        <a href="../logout.php">Logout</a>
+        <a href="../login.php">Logout</a>
     </aside>
     <header>
         <h1>Manage Users</h1>

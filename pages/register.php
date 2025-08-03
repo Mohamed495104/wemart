@@ -21,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $country = filter_var($_POST['country'] ?? '', FILTER_SANITIZE_STRING);
     $user_type = filter_var($_POST['user_type'] ?? 'user', FILTER_SANITIZE_STRING);
 
-
     // Validation
     if (empty($name) || empty($email) || empty($password) || empty($phone) || empty($address_line) || empty($city) || empty($state) || empty($postal_code) || empty($country)) {
         $errors[] = "All fields are required.";
@@ -48,7 +47,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Wemart</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css?v=<?php echo time(); ?>">
+    <style>
+        /* Email validation message styles */
+        .email-message {
+            margin-top: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .email-available {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .email-exists {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .email-loading {
+            background-color: #e2e3e5;
+            color: #495057;
+            border: 1px solid #d6d8db;
+        }
+
+        .email-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
 
 <body>
@@ -69,47 +103,198 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="name">Name:</label>
             <input type="text" name="name" id="name"
                 value="<?php echo htmlspecialchars($_POST['name'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+
             <label for="email">Email:</label>
             <input type="email" name="email" id="email"
-                value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true"
-                onblur="checkEmailAvailability(this.value)">
+                value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+            <div id="email-message" class="email-message"></div>
+
             <label for="password">Password:</label>
             <input type="password" name="password" id="password" required aria-required="true">
+
             <label for="phone">Phone:</label>
             <input type="text" name="phone" id="phone"
                 value="<?php echo htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES); ?>" required
                 aria-required="true">
+
             <label for="address_line">Address Line:</label>
             <input type="text" name="address_line" id="address_line"
                 value="<?php echo htmlspecialchars($_POST['address_line'] ?? '', ENT_QUOTES); ?>" required
                 aria-required="true">
+
             <label for="city">City:</label>
             <input type="text" name="city" id="city"
                 value="<?php echo htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES); ?>" required aria-required="true">
+
             <label for="state">State/Province:</label>
             <input type="text" name="state" id="state"
                 value="<?php echo htmlspecialchars($_POST['state'] ?? '', ENT_QUOTES); ?>" required
                 aria-required="true">
+
             <label for="postal_code">Postal Code:</label>
             <input type="text" name="postal_code" id="postal_code"
                 value="<?php echo htmlspecialchars($_POST['postal_code'] ?? '', ENT_QUOTES); ?>" required
                 aria-required="true">
+
             <label for="country">Country:</label>
             <input type="text" name="country" id="country"
                 value="<?php echo htmlspecialchars($_POST['country'] ?? '', ENT_QUOTES); ?>" required
                 aria-required="true">
+
             <label for="user_type">User Type:</label>
             <select name="user_type" id="user_type" required aria-required="true">
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
             </select>
-            <button type="submit">Register</button>
+
+            <button type="submit" id="submit-btn">Register</button>
             <p>Already have an account? <a href="login.php">Login here</a>.</p>
         </form>
-        <div id="email-message"></div>
     </main>
     <?php include '../includes/footer.php'; ?>
-    <script src="../assets/js/scripts.js"></script>
+
+    <script>
+        // Email validation functionality
+        let emailTimeout;
+        const emailInput = document.getElementById('email');
+        const emailMessage = document.getElementById('email-message');
+        const submitBtn = document.getElementById('submit-btn');
+        let isEmailValid = false;
+
+        // Add event listener to email input
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+
+            // Clear previous timeout
+            clearTimeout(emailTimeout);
+
+            // Hide message if email is empty
+            if (email === '') {
+                hideEmailMessage();
+                isEmailValid = false;
+                updateSubmitButton();
+                return;
+            }
+
+            // Basic email format validation
+            if (!isValidEmailFormat(email)) {
+                showEmailMessage('Invalid email format', 'email-error');
+                isEmailValid = false;
+                updateSubmitButton();
+                return;
+            }
+
+            // Show loading message
+            showEmailMessage('Checking email availability...', 'email-loading');
+
+            // Debounce API call (wait 500ms after user stops typing)
+            emailTimeout = setTimeout(() => {
+                checkEmailAvailability(email);
+            }, 500);
+        });
+
+        /**
+         * Check if email format is valid
+         * @param {string} email - Email to validate
+         * @returns {boolean} - True if valid format
+         */
+        function isValidEmailFormat(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        /**
+         * Check email availability via REST API
+         * @param {string} email - Email to check
+         */
+        async function checkEmailAvailability(email) {
+            try {
+                const response = await fetch('api/check_email.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email
+                    })
+                });
+
+                // Check if response is ok
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    if (data.exists) {
+                        showEmailMessage('Email already exists', 'email-exists');
+                        isEmailValid = false;
+                    } else {
+                        showEmailMessage('Email is available', 'email-available');
+                        isEmailValid = true;
+                    }
+                } else {
+                    showEmailMessage(data.message || 'Error checking email', 'email-error');
+                    isEmailValid = false;
+                }
+            } catch (error) {
+                console.error('Error checking email:', error);
+                showEmailMessage('Error checking email availability', 'email-error');
+                isEmailValid = false;
+            }
+
+            updateSubmitButton();
+        }
+
+        /**
+         * Show email validation message
+         * @param {string} message - Message to display
+         * @param {string} className - CSS class for styling
+         */
+        function showEmailMessage(message, className) {
+            emailMessage.textContent = message;
+            emailMessage.className = `email-message ${className}`;
+            emailMessage.style.display = 'block';
+        }
+
+        /**
+         * Hide email validation message
+         */
+        function hideEmailMessage() {
+            emailMessage.style.display = 'none';
+            emailMessage.textContent = '';
+            emailMessage.className = 'email-message';
+        }
+
+        /**
+         * Update submit button state based on email validation
+         */
+        function updateSubmitButton() {
+            const email = emailInput.value.trim();
+
+            if (email !== '' && !isEmailValid) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.style.cursor = 'not-allowed';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+        }
+
+        // Form submission validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const email = emailInput.value.trim();
+
+            if (email !== '' && !isEmailValid) {
+                e.preventDefault();
+                alert('Please use a different email address.');
+                return false;
+            }
+        });
+    </script>
 </body>
 
 </html>

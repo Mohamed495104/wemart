@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $image = $_FILES['image'];
             $allowed_types = ['image/jpeg', 'image/png'];
-            if (!in_array($image['type'], $allowed_types) || $image['size'] > 2 * 1024 * 1024) {
-                $errors[] = "Invalid image format or size (max 2MB, JPG/PNG only).";
+            if (!in_array($image['type'], $allowed_types) || $image['size'] > 5 * 1024 * 1024) {
+                $errors[] = "Invalid image format or size (max 5MB, JPG/PNG only).";
             } else {
                 // Generate unique filename
                 $file_extension = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="admin_dashboard.php">Dashboard</a>
         <a href="manage_product.php">Manage Products</a>
         <a href="manage_users.php">Manage Users</a>
-        <a href="../logout.php">Logout</a>
+        <a href="../login.php">Logout</a>
     </aside>
     <header>
         <h1>Edit Product</h1>

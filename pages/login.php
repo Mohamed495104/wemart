@@ -3,7 +3,38 @@ require_once '../includes/config.php';
 require_once '../classes/Database.php';
 require_once '../classes/User.php';
 
-// Session is started in config.php, no need to call here
+// ✅ Ensure session is always started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// ✅ Handle logout cleanly (with full session destroy)
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    // Clear session data
+    $_SESSION = [];
+
+    // Delete session cookie (optional but good)
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+
+    // Finally destroy session
+    session_destroy();
+
+    // Redirect to login
+    header("Location: login.php");
+    exit;
+}
+
 $db = new Database();
 $user = new User($db);
 $errors = [];
@@ -18,9 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Invalid email format.";
     } else {
         if ($user->login($email, $password)) {
-            print_r("session data is   " . $_SESSION['role']); // Debugging line to check session data
+            // Debug line (optional, can be removed)
+            // print_r("session data is   " . $_SESSION['role']);
+
             if ($_SESSION['role'] === 'admin') {
-                header("Location: admin/dashboard.php"); 
+                header("Location: admin/dashboard.php");
             } else {
                 header("Location: index.php");
             }
@@ -38,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Wemart</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css?v=<?php echo time(); ?>">
 </head>
 
 <body>

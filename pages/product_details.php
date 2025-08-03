@@ -1,4 +1,3 @@
-
 <?php
 require_once '../includes/config.php';
 require_once '../classes/Database.php';
@@ -15,17 +14,20 @@ if (!$prod) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($prod['name']); ?> - Wemart</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
     <?php include '../includes/header.php'; ?>
     <main>
         <section class="product-details">
-            <img src="<?php echo htmlspecialchars($prod['image']); ?>" alt="<?php echo htmlspecialchars($prod['name']); ?> product image">
+            <img src="../assets/images/products/<?php echo htmlspecialchars($prod['image']); ?>" alt="<?php echo htmlspecialchars($prod['name']); ?> product image">
             <h1><?php echo htmlspecialchars($prod['name']); ?></h1>
             <p><strong>Category:</strong> <?php echo htmlspecialchars($prod['category_name']); ?></p>
             <p><strong>Price:</strong> $<?php echo number_format($prod['price'], 2); ?></p>
@@ -40,4 +42,5 @@ if (!$prod) {
     </main>
     <?php include '../includes/footer.php'; ?>
 </body>
+
 </html>
