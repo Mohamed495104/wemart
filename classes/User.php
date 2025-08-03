@@ -106,10 +106,6 @@ class User {
             $stmt = $this->db->getConnection()->prepare("DELETE FROM addresses WHERE user_id = ?");
             $stmt->execute([$user_id]);
 
-            // Delete related orders (or you might want to keep them for records)
-            // $stmt = $this->db->getConnection()->prepare("DELETE FROM orders WHERE user_id = ?");
-            // $stmt->execute([$user_id]);
-
             // Delete the user
             $stmt = $this->db->getConnection()->prepare("DELETE FROM users WHERE user_id = ?");
             $result = $stmt->execute([$user_id]);

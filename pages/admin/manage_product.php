@@ -3,6 +3,7 @@ require_once '../../includes/config.php';
 require_once '../../classes/Database.php';
 require_once '../../classes/Product.php';
 
+// Ensure only admin can access this page
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../login.php");
     exit;
@@ -11,8 +12,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $db = new Database();
 $product = new Product($db);
 $errors = [];
+
+// Get categories for dropdown
 $categories = $db->getConnection()->query("SELECT * FROM categories")->fetchAll(PDO::FETCH_ASSOC);
 
+// Handle product creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
     $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
     $description = filter_var($_POST['description'], FILTER_SANITIZE_STRING);
@@ -25,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
     } elseif (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
         $errors[] = "Image is required or upload failed.";
     } else {
+        // Image validation
         $image = $_FILES['image'];
         $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
         $allowed_extensions = ['jpg', 'jpeg', 'png'];
@@ -33,13 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
         if (!in_array($image['type'], $allowed_types) || !in_array($file_extension, $allowed_extensions) || $image['size'] > 5 * 1024 * 1024) {
             $errors[] = "Invalid image format or size (max 5MB, JPG/JPEG/PNG only).";
         } else {
-            // Get just the clean original filename
-            $original_filename = pathinfo($image['name'], PATHINFO_BASENAME); // safest way
-            $safe_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_filename); // sanitize
+            // Clean and sanitize original filename
+            $original_filename = pathinfo($image['name'], PATHINFO_BASENAME);
+            $safe_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_filename);
 
-            $upload_path = rtrim(UPLOAD_DIR, '/') . '/' . $safe_filename; // make sure no double slashes
+            // Build safe upload path
+            $upload_path = rtrim(UPLOAD_DIR, '/') . '/' . $safe_filename;
 
-            // Make sure upload dir exists
+            // Create upload directory if it doesn't exist
             if (!is_dir(UPLOAD_DIR)) {
                 mkdir(UPLOAD_DIR, 0777, true);
             }
@@ -47,21 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
             if (file_exists($upload_path)) {
                 $errors[] = "File already exists. Please rename and try again.";
             } elseif (move_uploaded_file($image['tmp_name'], $upload_path)) {
-                // ✅ Store only the filename in DB, not full path
-                if ($product->create($name, $description, $price, $category_id, $safe_filename, $stock)) {
-                    header("Location: manage_product.php");
-                    exit;
-                } else {
-                    $errors[] = "Failed to create product.";
-                }
-            } else {
-                $errors[] = "Failed to move uploaded file.";
-            }
-        }
-
-        if (file_exists($upload_path)) {
-                $errors[] = "File already exists. Please rename and try again.";
-            } elseif (move_uploaded_file($image['tmp_name'], $upload_path)) {
+                // Save product using only the filename in DB
                 if ($product->create($name, $description, $price, $category_id, $safe_filename, $stock)) {
                     header("Location: manage_product.php");
                     exit;
@@ -73,16 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
             }
         }
     }
+}
 
-
+// Handle deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     $product->delete($_POST['product_id']);
     header("Location: manage_product.php");
     exit;
 }
 
+// Fetch all products for listing
 $products = $product->readAll();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

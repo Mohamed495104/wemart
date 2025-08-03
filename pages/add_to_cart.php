@@ -19,7 +19,7 @@ $quantity = $_POST['quantity'] ?? 1;
 if ($product_id) {
     $cart->add($_SESSION['user_id'], $product_id, $quantity);
 
-    // Get the correct cart count (sum of quantities, not row count)
+    // Get the correct cart count
     $cart_count = $cart->getCartCount($_SESSION['user_id']);
 
     echo json_encode(['success' => true, 'cart_count' => $cart_count]);

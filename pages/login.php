@@ -3,17 +3,17 @@ require_once '../includes/config.php';
 require_once '../classes/Database.php';
 require_once '../classes/User.php';
 
-// ✅ Ensure session is always started
+// Ensure session is always started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ✅ Handle logout cleanly (with full session destroy)
+// Handle logout cleanly 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     // Clear session data
     $_SESSION = [];
 
-    // Delete session cookie (optional but good)
+    // Delete session cookie
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(
@@ -27,7 +27,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
         );
     }
 
-    // Finally destroy session
+    // Destroy session
     session_destroy();
 
     // Redirect to login
@@ -49,8 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Invalid email format.";
     } else {
         if ($user->login($email, $password)) {
-            // Debug line (optional, can be removed)
-            // print_r("session data is   " . $_SESSION['role']);
 
             if ($_SESSION['role'] === 'admin') {
                 header("Location: admin/dashboard.php");

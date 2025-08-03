@@ -6,13 +6,13 @@ require_once '../classes/Product.php';
 $db = new Database();
 $product = new Product($db);
 
-// Handle AJAX search
+// AJAX: live search + category filter
 if (isset($_GET['ajax_search'])) {
     header('Content-Type: application/json');
     $search_term = $_GET['search'] ?? '';
     $category = $_GET['category'] ?? null;
 
-    $products = $search_term ? $product->search($search_term, $category) : $product->readAll();
+    $products = $product->search($search_term, $category);
 
     $is_first_order = true;
     $discount_code = 'WEMART20';
@@ -36,26 +36,29 @@ if (isset($_GET['ajax_search'])) {
         } else {
             $html .= '$' . number_format($base_price, 2);
         }
-        $html .= '</p>';
-        $html .= '</a>';
+        $html .= '</p></a>';
         $html .= '<div class="cart-actions">';
         $html .= '<input type="number" value="1" min="1" max="' . $p['stock'] . '" class="qty" />';
         $html .= '<button class="add-to-cart" data-id="' . $p['product_id'] . '">Add to Cart</button>';
-        $html .= '</div>';
-        $html .= '</div>';
+        $html .= '</div></div>';
     }
 
     echo json_encode(['html' => $html]);
     exit;
 }
 
-$products = isset($_GET['search']) ? $product->search($_GET['search'], $_GET['category'] ?? null) : $product->readAll();
+// Fallback: load all products with optional search and category filter
+$search_term = $_GET['search'] ?? '';
+$category_id = $_GET['category'] ?? null;
+$products = $product->search($search_term, $category_id);
+
 $categories = $db->getConnection()->query("SELECT * FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
 $is_first_order = true;
 $discount_code = 'WEMART20';
 $discount_percentage = 0.20;
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -270,7 +273,7 @@ $discount_percentage = 0.20;
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('products-grid').innerHTML = data.html;
-                    attachCartListeners(); // Re-attach events
+                    attachCartListeners();
                 });
         }
 

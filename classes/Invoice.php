@@ -1,5 +1,5 @@
 <?php
-require_once '../vendor/autoload.php'; // Adjust path if needed
+require_once '../vendor/autoload.php';
 
 use \Mpdf\Mpdf;
 
@@ -43,9 +43,9 @@ class Invoice
         $html .= "<p><em>Thank you for shopping with Wemart!</em></p>";
         $html .= "</body></html>";
 
-        // ✅ Proper PDF output
+        // Generate PDF output
         $mpdf = new Mpdf();
         $mpdf->WriteHTML($html);
-        $mpdf->Output('invoice_' . $order['order_id'] . '.pdf', 'D'); // D = force download
+        $mpdf->Output('invoice_' . $order['order_id'] . '.pdf', 'D');
     }
 }

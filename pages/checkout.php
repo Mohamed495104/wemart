@@ -19,18 +19,17 @@ $order_placed = false;
 $order_data = null;
 $ordered_items = null;
 $user_data = null;
+$error_message = null;
 
 // Handle invoice download
 if (isset($_GET['download_invoice']) && isset($_GET['order_id'])) {
     $order_id = $_GET['order_id'];
 
-    // Get order details - using correct column names from your database
     $stmt = $db->getConnection()->prepare("SELECT * FROM orders WHERE order_id = ? AND user_id = ?");
     $stmt->execute([$order_id, $_SESSION['user_id']]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($order) {
-        // Get order items - using correct product_id column
         $stmt = $db->getConnection()->prepare("
             SELECT oi.*, p.name 
             FROM order_items oi 
@@ -58,29 +57,59 @@ foreach ($cart_items as $item) {
 }
 
 if (isset($_POST['place_order']) && !empty($cart_items)) {
-    $stmt = $db->getConnection()->prepare("INSERT INTO orders (user_id, total_amount) VALUES (?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $total]);
-    $order_id = $db->getConnection()->lastInsertId();
+    // Step 1: Validate stock
+    $insufficient_stock = [];
 
     foreach ($cart_items as $item) {
-        $stmt = $db->getConnection()->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$order_id, $item['product_id'], $item['quantity'], $item['price']]);
+        $stmt = $db->getConnection()->prepare("SELECT stock FROM products WHERE product_id = ?");
+        $stmt->execute([$item['product_id']]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($product && $item['quantity'] > $product['stock']) {
+            $insufficient_stock[] = [
+                'name' => $item['name'],
+                'requested' => $item['quantity'],
+                'available' => $product['stock']
+            ];
+        }
     }
 
-    // Store order data for success display
-    $order_data = [
-        'order_id' => $order_id,
-        'total_amount' => $total,
-        'order_date' => date('Y-m-d H:i:s')
-    ];
-    $ordered_items = $cart_items;
-    $user_data = $user->readById($_SESSION['user_id']);
-    $order_placed = true;
+    if (!empty($insufficient_stock)) {
+        // Show error if any product is over stock limit
+        $error_message = "The following items exceed available stock:<ul>";
+        foreach ($insufficient_stock as $p) {
+            $error_message .= "<li><strong>{$p['name']}</strong>: requested {$p['requested']}, available {$p['available']}</li>";
+        }
+        $error_message .= "</ul>";
+    } else {
+        // Step 2: Insert order
+        $stmt = $db->getConnection()->prepare("INSERT INTO orders (user_id, total_amount) VALUES (?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $total]);
+        $order_id = $db->getConnection()->lastInsertId();
 
-    // Clear cart
-    $stmt = $db->getConnection()->prepare("DELETE FROM cart WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $_SESSION['cart'] = [];
+        foreach ($cart_items as $item) {
+            $stmt = $db->getConnection()->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$order_id, $item['product_id'], $item['quantity'], $item['price']]);
+
+            // Reduce stock
+            $stmt = $db->getConnection()->prepare("UPDATE products SET stock = stock - ? WHERE product_id = ?");
+            $stmt->execute([$item['quantity'], $item['product_id']]);
+        }
+
+        $order_data = [
+            'order_id' => $order_id,
+            'total_amount' => $total,
+            'order_date' => date('Y-m-d H:i:s')
+        ];
+        $ordered_items = $cart_items;
+        $user_data = $user->readById($_SESSION['user_id']);
+        $order_placed = true;
+
+        // Clear cart
+        $stmt = $db->getConnection()->prepare("DELETE FROM cart WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $_SESSION['cart'] = [];
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -91,15 +120,24 @@ if (isset($_POST['place_order']) && !empty($cart_items)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Wemart</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        .checkout-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+    </style>
 </head>
 
 <body>
     <?php include '../includes/header.php'; ?>
     <main>
         <?php if ($order_placed): ?>
-            <!-- Order Success Card -->
             <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin: 20px 0; color: #155724;">
-                <h1 style="color: #155724; margin-top: 0;">✅ Order Placed Successfully!</h1>
+                <h1 style="color: #155724;">✅ Order Placed Successfully!</h1>
                 <p><strong>Order ID:</strong> #<?php echo $order_data['order_id']; ?></p>
                 <p><strong>Order Date:</strong> <?php echo $order_data['order_date']; ?></p>
                 <p><strong>Customer:</strong> <?php echo htmlspecialchars($user_data['name']); ?></p>
@@ -136,6 +174,10 @@ if (isset($_POST['place_order']) && !empty($cart_items)) {
             </div>
         <?php else: ?>
             <h1>Checkout</h1>
+            <?php if (!empty($error_message)): ?>
+                <div class="checkout-error"><?php echo $error_message; ?></div>
+            <?php endif; ?>
+
             <?php if (empty($cart_items)): ?>
                 <p>Your cart is empty. <a href="index.php">Continue shopping</a></p>
             <?php else: ?>

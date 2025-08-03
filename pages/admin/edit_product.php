@@ -33,39 +33,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($name) || empty($price) || empty($category_id) || empty($stock)) {
         $errors[] = "Name, price, category, and stock are required.";
     } else {
-        $image_path = $p['image']; 
-        
-        // Check if new image is uploaded
+        $image_filename = $p['image']; // default to current image
+
+        // Handle new upload
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $image = $_FILES['image'];
             $allowed_types = ['image/jpeg', 'image/png'];
+            $file_extension = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
+            $original_filename = basename($image['name']);
+            $clean_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_filename);
+
             if (!in_array($image['type'], $allowed_types) || $image['size'] > 5 * 1024 * 1024) {
                 $errors[] = "Invalid image format or size (max 5MB, JPG/PNG only).";
             } else {
-                // Generate unique filename
-                $file_extension = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
-                $unique_filename = uniqid() . '.' . $file_extension;
-                
-                // Full path for file system operations
-                $full_image_path = UPLOAD_DIR . $unique_filename;
-                
-                // Relative path for database storage
-                $new_relative_path = 'assets/images/products/' . $unique_filename;
-                
-                // Create upload directory if it doesn't exist
+                $upload_path = rtrim(UPLOAD_DIR, '/') . '/' . $clean_filename;
+
+                // Create upload folder if not exists
                 if (!is_dir(UPLOAD_DIR)) {
                     mkdir(UPLOAD_DIR, 0777, true);
                 }
-                
-                if (move_uploaded_file($image['tmp_name'], $full_image_path)) {
-                    // Delete old image if it exists and is different
-                    if (!empty($p['image']) && $p['image'] !== $new_relative_path) {
-                        $old_image_path = '../../' . $p['image'];
-                        if (file_exists($old_image_path)) {
-                            unlink($old_image_path);
+
+                if (move_uploaded_file($image['tmp_name'], $upload_path)) {
+                    // Delete previous image if exists and is different
+                    if (!empty($p['image']) && $p['image'] !== $clean_filename) {
+                        $old_path = UPLOAD_DIR . $p['image'];
+                        if (file_exists($old_path)) {
+                            unlink($old_path);
                         }
                     }
-                    $image_path = $new_relative_path;
+
+                    // Original filename
+                    $image_filename = $clean_filename;
                 } else {
                     $errors[] = "Failed to upload image.";
                 }
@@ -73,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            if ($product->update($product_id, $name, $description, $price, $category_id, $image_path, $stock, $featured, $deal_price)) {
+            if ($product->update($product_id, $name, $description, $price, $category_id, $image_filename, $stock, $featured, $deal_price)) {
                 header("Location: manage_product.php");
                 exit;
             } else {
@@ -85,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/admin.css">
 </head>
+
 <body>
     <aside class="sidebar">
         <h2>Wemart Admin</h2>
@@ -108,33 +108,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1>Edit Product: <?php echo htmlspecialchars($p['name']); ?></h1>
             <a href="manage_product.php" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">← Back to Products</a>
         </div>
-        
+
         <?php if ($errors): ?>
-            <ul class="errors">
-                <?php foreach ($errors as $error): ?>
-                    <li><?php echo htmlspecialchars($error); ?></li>
-                <?php endforeach; ?>
-            </ul>
+            <ul class="errors"><?php foreach ($errors as $error): ?><li><?php echo htmlspecialchars($error); ?></li><?php endforeach; ?></ul>
         <?php endif; ?>
-        
+
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-bold mb-4">Update Product Information</h3>
             <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="name" class="block font-medium mb-2">Name:</label>
-                    <input type="text" name="name" id="name" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none" value="<?php echo htmlspecialchars($p['name']); ?>">
+                    <label for="name" class="block mb-2 font-medium">Name:</label>
+                    <input type="text" name="name" id="name" class="w-full p-3 border" value="<?php echo htmlspecialchars($p['name']); ?>">
                 </div>
                 <div>
-                    <label for="price" class="block font-medium mb-2">Price:</label>
-                    <input type="number" name="price" id="price" step="0.01" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none" value="<?php echo htmlspecialchars($p['price']); ?>">
+                    <label for="price" class="block mb-2 font-medium">Price:</label>
+                    <input type="number" name="price" id="price" step="0.01" class="w-full p-3 border" value="<?php echo htmlspecialchars($p['price']); ?>">
                 </div>
                 <div>
-                    <label for="deal_price" class="block font-medium mb-2">Deal Price (optional):</label>
-                    <input type="number" name="deal_price" id="deal_price" step="0.01" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none" value="<?php echo htmlspecialchars($p['deal_price'] ?? ''); ?>">
+                    <label for="deal_price" class="block mb-2 font-medium">Deal Price (optional):</label>
+                    <input type="number" name="deal_price" id="deal_price" step="0.01" class="w-full p-3 border" value="<?php echo htmlspecialchars($p['deal_price'] ?? ''); ?>">
                 </div>
                 <div>
-                    <label for="category_id" class="block font-medium mb-2">Category:</label>
-                    <select name="category_id" id="category_id" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none">
+                    <label for="category_id" class="block mb-2 font-medium">Category:</label>
+                    <select name="category_id" id="category_id" class="w-full p-3 border">
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat['category_id']; ?>" <?php echo ($p['category_id'] == $cat['category_id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($cat['name']); ?>
@@ -143,36 +138,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div>
-                    <label for="stock" class="block font-medium mb-2">Stock:</label>
-                    <input type="number" name="stock" id="stock" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none" value="<?php echo htmlspecialchars($p['stock']); ?>">
+                    <label for="stock" class="block mb-2 font-medium">Stock:</label>
+                    <input type="number" name="stock" id="stock" class="w-full p-3 border" value="<?php echo htmlspecialchars($p['stock']); ?>">
                 </div>
                 <div class="md:col-span-2">
-                    <label for="description" class="block font-medium mb-2">Description:</label>
-                    <textarea name="description" id="description" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none"><?php echo htmlspecialchars($p['description']); ?></textarea>
+                    <label for="description" class="block mb-2 font-medium">Description:</label>
+                    <textarea name="description" id="description" class="w-full p-3 border"><?php echo htmlspecialchars($p['description']); ?></textarea>
                 </div>
                 <div class="md:col-span-2">
-                    <label for="image" class="block font-medium mb-2">Image (leave blank to keep current):</label>
-                    <input type="file" name="image" id="image" accept="image/jpeg,image/png" class="w-full p-3 border border-gray-300 rounded focus:border-blue-500 focus:outline-none">
+                    <label for="image" class="block mb-2 font-medium">Image (leave blank to keep current):</label>
+                    <input type="file" name="image" id="image" accept="image/jpeg,image/png" class="w-full p-3 border">
                     <?php if (!empty($p['image'])): ?>
                         <div class="mt-2">
-                            <p class="text-sm text-gray-600">Current image:</p>
-                            <img src="../../<?php echo htmlspecialchars($p['image']); ?>" alt="Current product image" class="h-32 w-32 object-cover mt-2 border rounded">
-                            <p class="text-xs text-gray-500 mt-1">Path: <?php echo htmlspecialchars($p['image']); ?></p>
+                            <img src="<?php echo BASE_URL . 'assets/images/products/' . htmlspecialchars($p['image']); ?>" alt="Current image" class="h-32 w-32 object-cover border rounded mt-2">
+                            <p class="text-xs text-gray-500 mt-1">Filename: <?php echo htmlspecialchars($p['image']); ?></p>
                         </div>
-                    <?php else: ?>
-                        <p class="text-sm text-gray-600 mt-2">No current image</p>
                     <?php endif; ?>
                 </div>
                 <div>
                     <label for="featured" class="block font-medium mb-2">Featured:</label>
-                    <input type="checkbox" name="featured" id="featured" <?php echo $p['featured'] ? 'checked' : ''; ?> class="h-5 w-5 text-blue-500 focus:ring-blue-500 border-gray-300 rounded">
+                    <input type="checkbox" name="featured" id="featured" <?php echo $p['featured'] ? 'checked' : ''; ?> class="h-5 w-5 border-gray-300 rounded">
                 </div>
                 <div class="md:col-span-2 mt-6">
-                    <button type="submit" class="bg-blue-500 text-white px-8 py-3 rounded hover:bg-blue-600 font-medium">Update Product</button>
+                    <button type="submit" class="bg-blue-500 text-white px-8 py-3 rounded hover:bg-blue-600">Update Product</button>
                 </div>
             </form>
         </div>
     </main>
     <?php include '../../includes/footer.php'; ?>
 </body>
+
 </html>

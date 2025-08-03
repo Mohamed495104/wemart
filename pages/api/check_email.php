@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Email Availability Check REST API
+ * Email Availability Check in backend using REST API
  * 
  * This API endpoint checks if an email address is already registered in the system.
  * It accepts POST requests with JSON payload containing the email to check.
