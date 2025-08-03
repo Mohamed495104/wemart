@@ -29,4 +29,3 @@ This is a PHP-based e-commerce website inspired by Walmart, featuring a user-fac
 
 
    curl -X POST http://localhost/wemart/api/check_email.php -H "Content-Type: application/json" -d '{"email":"test@example.com"}'
-
