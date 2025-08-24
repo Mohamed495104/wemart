@@ -10,7 +10,6 @@ This is a PHP-based e-commerce website inspired by Walmart, featuring a user-fac
 - PHP 7.4+
 - MySQL (via phpMyAdmin)
 - Composer (for DOMPDF)
-- OpenWeatherMap API key (for weather-based suggestions)
 
 ## Setup Instructions
 1. **Database Setup**:
