@@ -17,10 +17,4 @@ This is a PHP-based e-commerce website inspired by Walmart, featuring a user-fac
    - Create a MySQL database named `wemart`.
    - Import the SQL below to create tables and sample data.
 
-
-2. **sample admin access**:
-
-maryjainadmin@gmail.com
-admin123
-
-3. **make sure the folder is wemart in htdocs**
+2. **make sure the folder 'wemart' is inside htdocs**
